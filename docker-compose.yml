@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  ku-webserver:
+    container_name: ku-webserver
+    hostname: ku-webserver
+    image: nginx:stable-alpine
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx/config/common:/etc/nginx/common
+      - ./nginx/config/sites-available:/etc/nginx/sites-available
+      - ./nginx/config/sites-enabled:/etc/nginx/sites-enabled
+      - ./nginx/config/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/config/dhparam.pem:/etc/nginx/dhparam.pem
+      - ./nginx/log:/var/log/nginx/
+      - ~/letsencrypt:/etc/letsencrypt # assume ssl certs exist in host's ~/letsencrypt, which is where certbot puts it.
+  ku-profile:
+    image: ohgo/ku-profile:${KU_PROFILE_TAG}
+    container_name: ku-profile
+    environment:
+      - SPOTIFY_TOKEN_PASSWORD
+      - SPOTIFY_TOKEN_REFRESH
+      - GOODREADS_KEY
+    expose:
+      - "8080" # matches api.kurniawan.dev.conf

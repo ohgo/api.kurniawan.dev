@@ -1,0 +1,6 @@
+KeyName=ApiKurniawanKeyPair
+InstanceType=t3.nano
+SSHLocation=2.248.168.146/32
+ImageId=ami-07d2cd50077a70430
+HostedZoneId=Z1GDNG1G25HG73
+HostName=api.kurniawan.dev
