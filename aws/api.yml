@@ -82,22 +82,15 @@ Resources:
           FromPort: 443
           ToPort: 443
           CidrIp: 0.0.0.0/0
-  ElasticIP:
-    Type: AWS::EC2::EIP
-    Properties:
-      InstanceId: !Ref EC2Instance
-      Tags:
-        - Key: Name
-          Value: !Sub ${AWS::StackName}-ElasticIP
   DnsRecord:
     Type: AWS::Route53::RecordSet
     Properties:
       Name: !Ref HostName
-      Type: A
+      Type: CNAME
       TTL: 60
       HostedZoneId: !Ref HostedZoneId
       ResourceRecords:
-        - !Ref ElasticIP
+        - !GetAtt EC2Instance.PublicDnsName
 Outputs:
   InstanceId:
     Description: InstanceId of the newly created EC2 instance
@@ -108,6 +101,3 @@ Outputs:
   PublicDNS:
     Description: Public DNSName of the newly created EC2 instance
     Value: !GetAtt EC2Instance.PublicDnsName
-  ElasticIP:
-    Description: Elastic IP address of the EC2 instance
-    Value: !Ref ElasticIP

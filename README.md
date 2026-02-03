@@ -18,9 +18,9 @@ Host api.kurniawan.dev
 ```
 Import to AWS
 ```
-aws ec2 import-key-pair --key-name "ApiKurniawanKeyPair" --public-key-material fileb://~/.ssh/api-kurniawan-dev.pub
+aws ec2 import-key-pair --key-name "ApiKurniawanKP" --public-key-material fileb://~/.ssh/api-kurniawan-dev.pub
 ```
-Add the key name (*ApiKurniawanKeyPair*) to `ec2.params` and deploy
+Add the key name (*ApiKurniawanKP*) to `api.params` and deploy
 
 ```shell script
 aws cloudformation deploy \
@@ -30,23 +30,24 @@ aws cloudformation deploy \
   --capabilities CAPABILITY_NAMED_IAM \
   --no-fail-on-empty-changeset
 ```
-When this is done, an EC2 with public elastic IP will be accessible via `api.kurniawan.dev` port `443`, `80`, and `22`.
+When this is done, an EC2 be accessible via `api.kurniawan.dev` port `443`, `80`, and `22`.
 
 ## Certbot
 
-Then SSH `ssh ec2-user@api.kurniawan.dev`
+Make sure SSHLocation in `api.params` is correct. Then SSH `ssh ec2-user@api.kurniawan.dev`
 
-Follow [certbot installation guide](https://certbot.eff.org/lets-encrypt/centosrhel7-nginx). Which is basically:
+Follow [certbot installation guide](https://certbot.eff.org/instructions). Which should be something like
 
 ```shell script
-# install certbot
-sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-sudo yum -y install certbot python2-certbot-nginx
+# install python
+sudo yum install -y python3 python3-pip
+pip3 install --upgrade pip
 
 # install certbot_dns_route53
-sudo yum -y install python-pip
-certbot --version
-pip install certbot_dns_route53==<certbot_version>
+sudo pip3 install certbot certbot-dns-route53 boto3
+
+# verify dns-route53 plugin is installed
+sudo /usr/local/bin/certbot plugins
 ```
 
 Generate certificate
@@ -64,23 +65,6 @@ certbot certonly --dns-route53 -d api.kurniawan.dev \
   --non-interactive
 ```
 
-If successful, we should get something like
-> IMPORTANT NOTES:
-> Congratulations! Your certificate and chain have been saved at:
-      /home/ec2-user/letsencrypt/config/live/api.kurniawan.dev/fullchain.pem
-      Your key file has been saved at:
-      /home/ec2-user/letsencrypt/config/live/api.kurniawan.dev/privkey.pem
-      Your cert will expire on 2020-10-11. To obtain a new or tweaked
-      version of this certificate in the future, simply run certbot
-      again. To non-interactively renew *all* of your certificates, run
-      "certbot renew"
-    - Your account credentials have been saved in your Certbot
-      configuration directory at /home/ec2-user/letsencrypt/config. You
-      should make a secure backup of this folder now. This configuration
-      directory will also contain certificates and private keys obtained
-      by Certbot so making regular backups of this folder is ideal.
-
-
 Add cron job for certificate renewal
 ```
 echo "0 4 * * * ec2-user certbot renew --dns-route53 --logs-dir /home/ec2-user/letsencrypt/logs/ --config-dir /home/ec2-user/letsencrypt/config/ --work-dir /home/ec2-user/letsencrypt/work/ --non-interactive --post-hook \"docker exec ku-webserver nginx -s reload\"" | sudo tee -a /etc/crontab > /dev/null
@@ -88,9 +72,7 @@ echo "0 4 * * * ec2-user certbot renew --dns-route53 --logs-dir /home/ec2-user/l
 
 ## Docker
 
-1. [Install docker](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html)
-2. Renew ssh session to make sure `ec2-user` has been added to the docker group
-3. [Install docker compose](https://docs.docker.com/compose/install/)
+1. [Install docker and compose in ec2](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/create-container-image.html)
 
 
 ## Run application
